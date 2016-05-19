@@ -67,7 +67,8 @@ classdef ERGload < handle
                 erg.step.(erg.stepnames{i}).L=NaN(size(erg.step.(erg.stepnames{i}).t));
                 erg.step.(erg.stepnames{i}).R=NaN(size(erg.step.(erg.stepnames{i}).t));
                 erg.stepn(i)=size(h5read(erg.dirFull,sprintf('/%s/L',erg.stepnames{i})),1);
-                erg.step.(erg.stepnames{i}).sel=true(erg.stepn(i),1);
+                erg.step.(erg.stepnames{i}).selL=true(erg.stepn(i),1);
+                erg.step.(erg.stepnames{i}).selR=true(erg.stepn(i),1);
             end
             
             erg.initialparseFlag=1;

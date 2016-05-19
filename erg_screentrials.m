@@ -24,15 +24,25 @@ classdef erg_screentrials<ergGUI
             Selected(params.PlotNow)=true;
             infoData=num2cell(Selected);
             
-            tableinput=struct;
-            tableinput.Position=[0.01, .54, 0.105, .45];
-            tableinput.FontSize=10;
-            tableinput.ColumnWidth={40};
-            tableinput.Data=infoData;
-            tableinput.ColumnName={'Step'};
-            tableinput.RowName=RowNames;
-            tableinput.headerWidth=55;
-            hGUI.infoTable(tableinput);
+%             % Steps as table
+%             tableinput=struct;
+%             tableinput.Position=[0.01, .54, 0.105, .45];
+%             tableinput.FontSize=10;
+%             tableinput.ColumnWidth={40};
+%             tableinput.Data=infoData;
+%             tableinput.ColumnName={'Step'};
+%             tableinput.RowName=RowNames;
+%             tableinput.headerWidth=55;
+%             hGUI.infoTable(tableinput);
+            
+            % Steps as drop-down
+            ddinput=struct;
+            ddinput.Position=[0.01, .65, 0.105, .05];
+            ddinput.FontSize=14;
+            ddinput.String=erg.stepnames;
+            ddinput.Callback=@hGUI.updateMenu;
+            hGUI.createDropdown(ddinput);
+            
             
             hGUI.redoTrials();
             
@@ -85,19 +95,26 @@ classdef erg_screentrials<ergGUI
         end
         
         function updatePlots(hGUI,~,~)
-            Selected=get(hGUI.figData.infoTable,'Data');
-            PlotNow=find(cell2mat(Selected(:,end)));
+%             Selected=get(hGUI.figData.infoTable,'Data');
+%             PlotNow=find(cell2mat(Selected(:,end)));
+            
+            PlotNow=hGUI.getMenuValue(hGUI.figData.DropDown);
+            
             hGUI.params.PlotNow=PlotNow;
             
             TrialSel=get(hGUI.figData.trialTable,'Data');
-            
+            selL = TrialSel(:,1);
+            selR = TrialSel(:,2);
             
             delete(get(hGUI.figData.plotL,'Children'))
             delete(get(hGUI.figData.plotR,'Children'))
             
-            currStep=hGUI.getRowName();
+            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             [Ltrials,Rtrials]=hGUI.erg.ERGfetchtrials(currStep);
             tAx=hGUI.erg.step.(currStep).t;
+            
+            hGUI.xlim(hGUI.figData.plotL,[min(tAx) max(tAx)])
+            hGUI.xlim(hGUI.figData.plotR,[min(tAx) max(tAx)])
             
             %zero line
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL);
@@ -111,11 +128,12 @@ classdef erg_screentrials<ergGUI
             % all trials
             colors=pmkmp((size(Ltrials,1)),'CubicL');
             for i=1:(size(Ltrials,1))
-                if TrialSel(i)
+                if selL(i)
                     lH=line(tAx,Ltrials(i,:),'Parent',hGUI.figData.plotL);
                     set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',colors(i,:))
                     set(lH,'DisplayName',sprintf('%s_L%02g',currStep,i))
-                    
+                end
+                if selR(i)
                     lH=line(tAx,Rtrials(i,:),'Parent',hGUI.figData.plotR);
                     set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',colors(i,:))
                     set(lH,'DisplayName',sprintf('%s_R%02g',currStep,i))
@@ -124,24 +142,31 @@ classdef erg_screentrials<ergGUI
                        
         end
         
-        function updateTable(hGUI,~,eventdata)
+%         function updateTable(hGUI,~,eventdata)
+%             hGUI.disableGui;
+%             Selected=get(hGUI.figData.infoTable,'Data');
+%             Plotted=find(cell2mat(Selected(:,end)));
+%             Previous=Plotted(Plotted~=eventdata.Indices(1));
+%             Plotted=Plotted(Plotted==eventdata.Indices(1));
+%             Selected{Previous,end}=false;
+%             Selected{Plotted,end}=true;
+%             set(hGUI.figData.infoTable,'Data',Selected)
+%             hGUI.redoTrials();
+%             hGUI.updatePlots();
+%             hGUI.enableGui;
+%             %            hGUI.refocusTable(Plotted)
+%         end
+        
+        function updateMenu(hGUI,~,~)
             hGUI.disableGui;
-            Selected=get(hGUI.figData.infoTable,'Data');
-            Plotted=find(cell2mat(Selected(:,end)));
-            Previous=Plotted(Plotted~=eventdata.Indices(1));
-            Plotted=Plotted(Plotted==eventdata.Indices(1));
-            Selected{Previous,end}=false;
-            Selected{Plotted,end}=true;
-            set(hGUI.figData.infoTable,'Data',Selected)
             hGUI.redoTrials();
             hGUI.updatePlots();
             hGUI.enableGui;
-            %            hGUI.refocusTable(Plotted)
         end
         
         function redoTrials(hGUI,~,~)
-            currStep=hGUI.getRowName;
-            Trials=size(hGUI.erg.step.(currStep).sel,1);
+            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
+            Trials=size(hGUI.erg.step.(currStep).selL,1);
             colors2=pmkmp(Trials,'CubicL');
             tcolors2=round(colors2./1.2.*255);
             TrialNames=cell(size(Trials));
@@ -151,13 +176,13 @@ classdef erg_screentrials<ergGUI
             
             table2input=struct;
             table2input.tag='trialTable';
-            table2input.Position=[0.01, .05, 0.105, .45];
+            table2input.Position=[0.01, .01, 0.105, .65];
             table2input.FontSize=10;
-            table2input.ColumnWidth={40};
-            table2input.Data=hGUI.erg.step.(currStep).sel;
-            table2input.ColumnName={'Trial'};
+            table2input.ColumnWidth={35};
+            table2input.Data=[hGUI.erg.step.(currStep).selL hGUI.erg.step.(currStep).selR];
+            table2input.ColumnName={'L','R'};
             table2input.RowName=TrialNames;
-            table2input.headerWidth=55;
+            table2input.headerWidth=42;
             table2input.CellEditCallback=@hGUI.updateTrials;
             hGUI.createTable(table2input);
         end
@@ -185,7 +210,7 @@ classdef erg_screentrials<ergGUI
             colors=pmkmp(nSteps,'CubicL');
             
             %zero line
-            currStep=hGUI.getRowName();
+            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             tAx=hGUI.erg.step.(currStep).t;
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
             set(lH,'LineStyle','-','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
@@ -214,32 +239,12 @@ classdef erg_screentrials<ergGUI
         end
         
 
-        
         function lockButtonCall(hGUI,~,~)
             hGUI.disableGui;
             
             hGUI.enableGui;
         end
         
-%         function updateTable(hGUI,~,eventdata)
-%            hGUI.disableGui;
-%            Selected=get(hGUI.figData.infoTable,'Data');
-%            Plotted=find(cell2mat(Selected(:,end)));
-%            Previous=Plotted(Plotted~=eventdata.Indices(1));
-%            Plotted=Plotted(Plotted==eventdata.Indices(1));
-%            
-%            Selected{Previous,end}=false;
-%            Selected{Plotted,end}=true;
-%            set(hGUI.figData.infoTable,'Data',Selected)
-%            
-%            Rows=size(hGUI.hekadat.waveNames,1);
-%            colors=whithen(pmkmp(Rows,'CubicL'),0.5);
-%            curt=findobj('DisplayName',hGUI.hekadat.waveNames{Previous});
-%            set(curt,'Color',colors(Previous,:),'LineWidth',1)
-%            
-%            updatePlots(hGUI);
-%            hGUI.enableGui;
-%         end
        
     end
     

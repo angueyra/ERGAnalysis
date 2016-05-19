@@ -173,5 +173,13 @@ classdef ergGUI < genericGUI
        function labely(plothandle,ylabel)
           set(get(plothandle,'YLabel'),'string',ylabel,'fontsize',12) 
        end
+       
+       function xlim(plothandle,xlim)
+          set(plothandle,'xlim',xlim) 
+       end
+       
+       function ylim(plothandle,xlim)
+          set(plothandle,'ylim',xlim) 
+       end
    end
 end
