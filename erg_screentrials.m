@@ -18,40 +18,32 @@ classdef erg_screentrials<ergGUI
             for i=1:Rows
                 RowNames{i}=sprintf('<html><font color=rgb(%d,%d,%d)>%s</font></html>',tcolors(i,1),tcolors(i,2),tcolors(i,3),erg.stepnames{i});
             end
-            
-            % info Table
-            Selected=false(Rows,1);
-            Selected(params.PlotNow)=true;
-            infoData=num2cell(Selected);
-            
-%             % Steps as table
-%             tableinput=struct;
-%             tableinput.Position=[0.01, .54, 0.105, .45];
-%             tableinput.FontSize=10;
-%             tableinput.ColumnWidth={40};
-%             tableinput.Data=infoData;
-%             tableinput.ColumnName={'Step'};
-%             tableinput.RowName=RowNames;
-%             tableinput.headerWidth=55;
-%             hGUI.infoTable(tableinput);
-            
+                     
             % Steps as drop-down
             ddinput=struct;
             ddinput.Position=[0.01, .65, 0.105, .05];
             ddinput.FontSize=14;
-            ddinput.String=erg.stepnames;
+            ddinput.String=RowNames;%erg.stepnames;
             ddinput.Callback=@hGUI.updateMenu;
             hGUI.createDropdown(ddinput);
-            
-            
-            hGUI.redoTrials();
             
             pleft=.180;
             pwidth=.45;
             pheight=.43;
             ptop=.555;
             ptop2=.08;
-                        
+            
+            bw=.11;
+            bh=0.07;
+            bl=0.005;
+            % buttons
+            hGUI.nextButton;
+            hGUI.prevButton;
+            hGUI.lockButton;
+            
+            accStruct=struct('callback',@hGUI.acceptButtonCall);
+            hGUI.acceptButton;
+            
             % trials in current step
             % left Eye
             plotL=struct('Position',[pleft ptop pwidth pheight],'tag','plotL');
@@ -88,19 +80,17 @@ classdef erg_screentrials<ergGUI
             hGUI.labely(hGUI.figData.plotR2,'right TRP (\muV)');
             hGUI.firstLRplot();
             
-            hGUI.updatePlots();
+            
+            hGUI.updateMenu();
 %             if params.LockNow
 %                 hGUI.lockButtonCall();
 %             end
         end
         
         function updatePlots(hGUI,~,~)
-%             Selected=get(hGUI.figData.infoTable,'Data');
-%             PlotNow=find(cell2mat(Selected(:,end)));
+            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             
-            PlotNow=hGUI.getMenuValue(hGUI.figData.DropDown);
-            
-            hGUI.params.PlotNow=PlotNow;
+            hGUI.params.PlotNow=currStep;
             
             TrialSel=get(hGUI.figData.trialTable,'Data');
             selL = TrialSel(:,1);
@@ -109,22 +99,50 @@ classdef erg_screentrials<ergGUI
             delete(get(hGUI.figData.plotL,'Children'))
             delete(get(hGUI.figData.plotR,'Children'))
             
-            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             [Ltrials,Rtrials]=hGUI.erg.ERGfetchtrials(currStep);
             tAx=hGUI.erg.step.(currStep).t;
             
             hGUI.xlim(hGUI.figData.plotL,[min(tAx) max(tAx)])
             hGUI.xlim(hGUI.figData.plotR,[min(tAx) max(tAx)])
             
+            hGUI.xlim(hGUI.figData.plotL2,[min(tAx) max(tAx)])
+            hGUI.xlim(hGUI.figData.plotR2,[min(tAx) max(tAx)])
+            
             %zero line
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
             set(lH,'DisplayName','zeroL')
             
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
             set(lH,'DisplayName','zeroR')
+            %zero line
+            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
+            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'DisplayName','zeroL2')
             
+            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR2);
+            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'DisplayName','zeroR2')
+            
+            %temporary mean
+            if sum(selL)>1
+                lH=line(tAx,mean(Ltrials(selL,:)),'Parent',hGUI.figData.plotL);
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'DisplayName',sprintf('tempL'))
+                
+                lH=findobj('DisplayName','tempL2');
+                set(lH,'xdata',tAx,'ydata',mean(Ltrials(selL,:)))
+                
+            end
+            if sum(selR)>1
+                lH=line(tAx,mean(Rtrials(selR,:)),'Parent',hGUI.figData.plotR);
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'DisplayName',sprintf('tempR'))
+                
+                lH=findobj('DisplayName','tempR2');
+                set(lH,'xdata',tAx,'ydata',mean(Rtrials(selR,:)))
+            end
             % all trials
             colors=pmkmp((size(Ltrials,1)),'CubicL');
             for i=1:(size(Ltrials,1))
@@ -139,23 +157,24 @@ classdef erg_screentrials<ergGUI
                     set(lH,'DisplayName',sprintf('%s_R%02g',currStep,i))
                 end
             end
-                       
+            %update stored mean
+            stepsn=size(get(hGUI.figData.DropDown,'string'),1);
+            stepsv=get(hGUI.figData.DropDown,'value');
+            scolors=pmkmp(stepsn,'CubicL');
+            
+            lH=findobj('DisplayName',sprintf('%s_L',currStep));
+            set(lH,'ydata',hGUI.erg.step.(currStep).L)
+            lH=findobj('DisplayName',sprintf('%s_R',currStep));
+            set(lH,'ydata',hGUI.erg.step.(currStep).R)
+%             
+%             lH=line(tAx,hGUI.erg.step.(currStep).L,'Parent',hGUI.figData.plotL2);
+%             set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(stepsv,:))
+%             set(lH,'DisplayName',sprintf('%s_L',currStep))
+%             lH=line(tAx,hGUI.erg.step.(currStep).R,'Parent',hGUI.figData.plotR2);
+%             set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(stepsv,:))
+%             set(lH,'DisplayName',sprintf('%s_R',currStep))
         end
         
-%         function updateTable(hGUI,~,eventdata)
-%             hGUI.disableGui;
-%             Selected=get(hGUI.figData.infoTable,'Data');
-%             Plotted=find(cell2mat(Selected(:,end)));
-%             Previous=Plotted(Plotted~=eventdata.Indices(1));
-%             Plotted=Plotted(Plotted==eventdata.Indices(1));
-%             Selected{Previous,end}=false;
-%             Selected{Plotted,end}=true;
-%             set(hGUI.figData.infoTable,'Data',Selected)
-%             hGUI.redoTrials();
-%             hGUI.updatePlots();
-%             hGUI.enableGui;
-%             %            hGUI.refocusTable(Plotted)
-%         end
         
         function updateMenu(hGUI,~,~)
             hGUI.disableGui;
@@ -183,44 +202,55 @@ classdef erg_screentrials<ergGUI
             table2input.ColumnName={'L','R'};
             table2input.RowName=TrialNames;
             table2input.headerWidth=42;
-            table2input.CellEditCallback=@hGUI.updateTrials;
+            table2input.CellEditCallback=@hGUI.updatePlots;
             hGUI.createTable(table2input);
         end
-        
-        function updateTrials(hGUI,~,~)
-%             currStep=hGUI.getRowName;
-%             Trials=size(hGUI.erg.step.(currStep).sel,1);
-%             colors2=pmkmp(Trials,'CubicL');
-%             tcolors2=round(colors2./1.2.*255);
-%             TrialNames=cell(size(Trials));
-%             for i=1:Trials
-%                 TrialNames{i}=sprintf('<html><font color=rgb(%d,%d,%d)>Trial%02g</font></html>',tcolors2(i,1),tcolors2(i,2),tcolors2(i,3),i);
-%             end
-%             
-%             sel=get(hGUI.figData.trialTable,'Data');
+
+        function acceptButtonCall(hGUI,~,~)
+            hGUI.disableGui;
+            currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
+            TrialSel=get(hGUI.figData.trialTable,'Data');
             
+            [Ltrials,Rtrials]=hGUI.erg.ERGfetchtrials(currStep);
+            
+            selL = TrialSel(:,1);
+            hGUI.erg.step.(currStep).selL=selL;
+            if sum(selL)==1
+                hGUI.erg.step.(currStep).L=Ltrials;
+            elseif sum(selL)>1
+                hGUI.erg.step.(currStep).L=mean(Ltrials(selL,:));
+            end
+            
+            selR = TrialSel(:,2);
+            hGUI.erg.step.(currStep).selR=selR;
+            if sum(selR)==1
+                hGUI.erg.step.(currStep).R=Rtrials;
+            elseif sum(selR)>1
+                hGUI.erg.step.(currStep).R=mean(Rtrials(selR,:));
+            end
             
             
             hGUI.updatePlots();
+            hGUI.enableGui;
         end
         
         function firstLRplot(hGUI,~,~)
             hGUI.disableGui;
-            nSteps=size(hGUI.erg.stepnames,1);
-            colors=pmkmp(nSteps,'CubicL');
             
-            %zero line
             currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             tAx=hGUI.erg.step.(currStep).t;
+            %temp means to replace at every update
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','zeroL')
+            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'DisplayName','tempL2')
             
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','zeroR')
+            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'DisplayName','tempR2')
             
-            for i=1:size(nSteps)
+            stepsn=size(get(hGUI.figData.DropDown,'string'),1);
+            scolors=pmkmp(stepsn,'CubicL');
+            for i=1:stepsn
                 currStep=hGUI.erg.stepnames{i};
                 
                 tAx=hGUI.erg.step.(currStep).t;
@@ -228,20 +258,13 @@ classdef erg_screentrials<ergGUI
                 R=hGUI.erg.step.(currStep).R;
                 
                 lH=line(tAx,L,'Parent',hGUI.figData.plotL2);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',colors(i,:))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(i,:))
                 set(lH,'DisplayName',sprintf('%s_L',currStep))
                 
                 lH=line(tAx,R,'Parent',hGUI.figData.plotR2);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',colors(i,:))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(i,:))
                 set(lH,'DisplayName',sprintf('%s_R',currStep))
             end
-            hGUI.enableGui;
-        end
-        
-
-        function lockButtonCall(hGUI,~,~)
-            hGUI.disableGui;
-            
             hGUI.enableGui;
         end
         

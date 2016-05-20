@@ -60,7 +60,7 @@ classdef ergGUI < genericGUI
            % button definition
            buttonstruct.Parent=hGUI.figH;
            buttonstruct.callback=@hGUI.nextButtonCall;
-           buttonstruct=checkStructField(buttonstruct,'Position',[.895 .79 0.10 .10]);
+           buttonstruct=checkStructField(buttonstruct,'Position',[.005 .705 .11 .07]);
            buttonstruct=checkStructField(buttonstruct,'Style','pushbutton');
            buttonstruct=checkStructField(buttonstruct,'string','--->');
            buttonstruct=checkStructField(buttonstruct,'FontSize',10);
@@ -82,7 +82,7 @@ classdef ergGUI < genericGUI
            % button definition
            buttonstruct.Parent=hGUI.figH;
            buttonstruct.callback=@hGUI.prevButtonCall;
-           buttonstruct=checkStructField(buttonstruct,'Position',[.895 .895 0.10 .10]);
+           buttonstruct=checkStructField(buttonstruct,'Position',[.005 .775 .11 .07]);
            buttonstruct=checkStructField(buttonstruct,'Style','pushbutton');
            buttonstruct=checkStructField(buttonstruct,'string','<---');
            buttonstruct=checkStructField(buttonstruct,'FontSize',10);
@@ -104,7 +104,7 @@ classdef ergGUI < genericGUI
            % button definition
            buttonstruct.Parent=hGUI.figH;
            buttonstruct.callback=@hGUI.lockButtonCall;
-           buttonstruct=checkStructField(buttonstruct,'Position',[.895 .01 0.10 .10]);
+           buttonstruct=checkStructField(buttonstruct,'Position',[.005 .93 .11 .07]);
            buttonstruct=checkStructField(buttonstruct,'Style','pushbutton');
            buttonstruct=checkStructField(buttonstruct,'String','Lock&Save');
            buttonstruct=checkStructField(buttonstruct,'FontSize',10);
@@ -114,46 +114,68 @@ classdef ergGUI < genericGUI
            hGUI.figData.(buttonName) = uicontrol(buttonstruct.Parent,'Units','normalized',buttonstruct);
        end
        
+       function acceptButton(hGUI,buttonstruct)
+           if nargin < 2
+               buttonstruct=struct;
+               buttonstruct.tag='accept';
+           else
+               buttonstruct=checkStructField(buttonstruct,'tag','accept');
+           end
+           % if same exists, delete it
+           delete(findobj('tag',buttonstruct.tag))
+           % button definition
+           buttonstruct.Parent=hGUI.figH;
+           buttonstruct.callback=@hGUI.acceptButtonCall;
+           buttonstruct=checkStructField(buttonstruct,'Position',[.005 .85 .11 .07]);
+           buttonstruct=checkStructField(buttonstruct,'Style','pushbutton');
+           buttonstruct=checkStructField(buttonstruct,'String','Accept');
+           buttonstruct=checkStructField(buttonstruct,'FontSize',10);
+           buttonstruct=checkStructField(buttonstruct,'UserData',[]);
+           %create button
+           buttonName=sprintf('%sButton',buttonstruct.tag);
+           hGUI.figData.(buttonName) = uicontrol(buttonstruct.Parent,'Units','normalized',buttonstruct);
+       end
+       
        % Callback functions
        function nextButtonCall(hGUI,~,~)
-           hGUI.disableGui;
-           Selected=get(hGUI.figData.infoTable,'Data');
-           Current=find(cell2mat(Selected(:,end)));
-           PlotNext=Current+1;
-           if PlotNext>size(Selected,1)
-               PlotNext=1;
-           end
-           Selected{Current,end}=false;
-           Selected{PlotNext,end}=true;
-           set(hGUI.figData.infoTable,'Data',Selected)
-           
-           hGUI.updatePlots();
-           hGUI.enableGui;
+            hGUI.disableGui;
+            ddOptions = get(hGUI.figData.DropDown,'String');
+            nowValue = get(hGUI.figData.DropDown,'Value');
+            if nowValue+1>size(ddOptions,1)
+                nextValue=1;
+            else
+                nextValue=nowValue+1;
+            end
+            set(hGUI.figData.DropDown,'Value',nextValue);
+            hGUI.updateMenu();
+            hGUI.enableGui;
        end
-       
-       function prevButtonCall(hGUI,~,~)
-           hGUI.disableGui;
-           Selected=get(hGUI.figData.infoTable,'Data');
-           Previous=find(cell2mat(Selected(:,end)));
-           PlotNext=Previous-1;
-           if PlotNext<1
-               PlotNext=size(Selected,1);
-           end
-           Selected{Previous,end}=false;
-           Selected{PlotNext,end}=true;
-           set(hGUI.figData.infoTable,'Data',Selected)
-           
-           hGUI.updatePlots();
-           hGUI.enableGui;
-       end
-       
+        
+        function prevButtonCall(hGUI,~,~)
+            hGUI.disableGui;
+            ddOptions = get(hGUI.figData.DropDown,'String');
+            nowValue = get(hGUI.figData.DropDown,'Value');
+            if nowValue-1<1
+                prevValue=size(ddOptions,1);
+            else
+                prevValue=nowValue-1;
+            end
+            set(hGUI.figData.DropDown,'Value',prevValue);
+            hGUI.updateMenu();
+            hGUI.enableGui;
+        end
+        
+        
        function lockButtonCall(hGUI,~,~)
            hGUI.disableGui;
-           hGUI.erg.HEKAsave();
-           hGUI.updatePlots();
+           hGUI.erg.ERGsave();
            hGUI.enableGui;
        end
        
+       function defaultCall(hGUI,~,~)
+           hGUI.disableGui;
+           hGUI.enableGui;
+       end
        function RowNames=waveTableNames(hGUI)
            Rows=size(hGUI.erg.waveNames,1);
            colors=pmkmp(Rows,'CubicL');

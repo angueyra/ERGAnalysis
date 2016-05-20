@@ -29,8 +29,9 @@ classdef ERGload < handle
             else
                 % file has been previously loaded, parsed and saved
                 if exist(sprintf('%s%s/%s.mat',erg.dirRoot,dirData,dirFile),'file')==2
-                    temp_esp=load(sprintf('%s/%s',dirData,dirFile));
+                    temp_esp=load(sprintf('%s%s/%s.mat',erg.dirRoot,dirData,dirFile));
                     erg=temp_esp.erg;
+                    fprintf('Loaded previously saved version!\n')
                 else % parse file for the first time
                     if exist(sprintf('%s%s/%s.h5',erg.dirRoot,dirData,dirFile),'file')==2
                         % run py code from here!
