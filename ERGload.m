@@ -26,20 +26,32 @@ classdef ERGload < handle
                 error('dirData must be a string (e.g. ''20160422'')')
             elseif ~ischar(dirFile)
                 error('dirFile must be a string (e.g. ''01_1sG'')')
-            else
-                % file has been previously loaded, parsed and saved
+            else % file has been previously loaded, parsed and saved
                 if exist(sprintf('%s%s/%s.mat',erg.dirRoot,dirData,dirFile),'file')==2
                     temp_esp=load(sprintf('%s%s/%s.mat',erg.dirRoot,dirData,dirFile));
                     erg=temp_esp.erg;
                     fprintf('Loaded previously saved version!\n')
-                else % parse file for the first time
+                else % espion csv file has been remapped to h5 file but not manipulated in matlab
                     if exist(sprintf('%s%s/%s.h5',erg.dirRoot,dirData,dirFile),'file')==2
-                        % run py code from here!
                         erg.dirData=dirData;
                         erg.dirFile=dirFile;
                         erg=ERGparse(erg);
-                    else
-                        error('file <%s.h5> does not exist in <%s>',dirFile,dirData)
+                    else % espion csv file exist but hasn't been remapped to h5 file
+                        if exist(sprintf('%s%s/%s.csv',erg.dirRoot,dirData,dirFile),'file')==2
+                            warning('file <%s.h5> does not exist in <%s>\n',dirFile,dirData)
+                            fprintf('attempting to run python csv parser:\n')
+                            pyout=erg.runpycsvparser;
+                            if pyout==0
+                                fprintf('PY_SUCCESS\n')
+                                erg.dirData=dirData;
+                                erg.dirFile=dirFile;
+                                erg=ERGparse(erg);
+                            else
+                                fprintf('PY_FAIL\n')
+                            end
+                        else
+                            error('file <%s.csv> does not exist in <%s>',dirFile,dirData)
+                        end
                     end
                 end
             end
@@ -83,6 +95,18 @@ classdef ERGload < handle
         function[Ltrials,Rtrials] = ERGfetchtrials(erg,stepname)
             Ltrials=h5read(erg.dirFull,sprintf('/%s/L',stepname));
             Rtrials=h5read(erg.dirFull,sprintf('/%s/R',stepname));
+        end
+        
+        function pyout=runpycsvparser(erg)
+            pypath='/Users/angueyraaristjm/matlab/matlab-analysis/trunk/users/juan/AnalysisMain/ERGAnalysis/ERGcsv2h5.py';
+            pypath=['~/anaconda/python.app/Contents/MacOS/python ' pypath];
+            filepath=sprintf(' %s',erg.dirData);
+            filename=sprintf(' %s',erg.dirFile);
+            species=' Squirrel';
+            % run python file through system (UNIX)
+            pyout=system([pypath filename filepath species]);
+            
+            % try import sys in python for argument values
         end
     end
     
