@@ -1,4 +1,4 @@
-classdef ERGload < handle
+classdef ERGobj < handle
 % usage (after remapping csv from erg to h5 file using ????.py: 
 % erg=ERGload('subDirectory/','h5file')
     properties
@@ -15,13 +15,15 @@ classdef ERGload < handle
         stepnames
         step = struct();
         stepn
+        
+        results
     end
     
     properties (SetAccess = private)
     end
     
     methods
-        function erg=ERGload(dirData, dirFile)
+        function erg=ERGobj(dirData, dirFile)
             if ~ischar(dirData)
                 error('dirData must be a string (e.g. ''20160422'')')
             elseif ~ischar(dirFile)
@@ -38,11 +40,12 @@ classdef ERGload < handle
                         erg=ERGparse(erg);
                     else % espion csv file exist but hasn't been remapped to h5 file
                         if exist(sprintf('%s%s/%s.csv',erg.dirRoot,dirData,dirFile),'file')==2
-                            warning('file <%s.h5> does not exist in <%s>\n',dirFile,dirData)
-                            fprintf('attempting to run python csv parser:\n')
+%                             error('file <%s.h5> does not exist in <%s>\n Remap in Jupyter',dirFile,dirData)
+                            fprintf('file <%s.h5> does not exist in <%s>\n',dirFile,dirData)
+                            fprintf('\tattempting to run python csv parser:\n')
                             pyout=erg.runpycsvparser;
                             if pyout==0
-                                fprintf('PY_SUCCESS\n')
+                                fprintf('\t\tPY_SUCCESS!\n')
                                 erg.dirData=dirData;
                                 erg.dirFile=dirFile;
                                 erg=ERGparse(erg);
@@ -97,15 +100,62 @@ classdef ERGload < handle
             Rtrials=h5read(erg.dirFull,sprintf('/%s/R',stepname));
         end
         
-        function pyout=runpycsvparser(erg)
-            pypath='/Users/angueyraaristjm/matlab/matlab-analysis/trunk/users/juan/AnalysisMain/ERGAnalysis/ERGcsv2h5.py';
-            pypath=['~/anaconda/python.app/Contents/MacOS/python ' pypath];
-            filepath=sprintf(' %s',erg.dirData);
-            filename=sprintf(' %s',erg.dirFile);
-            species=' Squirrel';
-            % run python file through system (UNIX)
-            pyout=system([pypath filename filepath species]);
+        function trials = ERGseltrials(erg,stepname)
+            % get selected trials after erg_screentrials has been run
+            trials = struct;
+            [Ltrials,Rtrials] = ERGfetchtrials(erg,stepname);
+            trials.L = Ltrials(erg.step.(stepname).selL,:);
+            trials.R = Ltrials(erg.step.(stepname).selR,:);
+        end
+        
+        
+        function iS=Iseries_abpeaks(erg)
+            iS.La_peak=NaN(size(erg.stepnames));
+            iS.La_t=NaN(size(erg.stepnames));
+            iS.Lb_peak=NaN(size(erg.stepnames));
+            iS.Lb_t=NaN(size(erg.stepnames));
             
+            iS.Ra_peak=NaN(size(erg.stepnames));
+            iS.Ra_t=NaN(size(erg.stepnames));
+            iS.Rb_peak=NaN(size(erg.stepnames));
+            iS.Rb_t=NaN(size(erg.stepnames));
+            
+            for i=1:size(erg.stepnames,1)
+                
+                currStep=erg.stepnames{i};
+                tAx=erg.step.(currStep).t;
+                L=erg.step.(currStep).L;
+                R=erg.step.(currStep).R;
+                
+                alims=(tAx>0.000 & tAx<0.05);
+                aL=L; aL(alims)=0;
+                aR=R; aR(alims)=0;
+                blims=(tAx>0.025 & tAx<0.15);
+                bL=L; bL(blims)=0;
+                bR=R; bR(blims)=0;
+                
+                iS.La_peak(i)=min(aL);
+                iS.La_t(i)=tAx(find(aL==min(aL),1,'first'));
+                iS.Ra_peak(i)=min(aR);
+                iS.Ra_t(i)=tAx(find(aR==min(aR),1,'first'));
+                
+                iS.Lb_peak(i)=min(bL);
+                iS.Lb_t(i)=tAx(find(bL==min(bL),1,'first'));
+                iS.Rb_peak(i)=min(bR);
+                iS.Rb_t(i)=tAx(find(bR==min(bR),1,'first'));
+                
+            end
+        end
+        
+        function pyout=runpycsvparser(erg)
+            pypath='/Users/angueyraaristjm/matlab/matlab-analysis/trunk/users/juan/AnalysisMain/ERGAnalysis/test.py';
+            pypath=['~/anaconda/python.app/Contents/MacOS/python ' pypath];
+            filepath=sprintf(' "%s"',erg.dirData);
+            filename=sprintf(' "%s"',erg.dirFile);
+            species=sprintf(' "%s"','Squirrel');
+            % run python file through system (UNIX)
+%             pyout=system([pypath filepath filename species]);
+            error ('Py script not running properly. Reqs. variable input or manual adjustments')
             % try import sys in python for argument values
         end
     end

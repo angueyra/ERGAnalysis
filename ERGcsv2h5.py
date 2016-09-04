@@ -103,7 +103,7 @@ class espion_file:
         intfields = ["Steps", "Channels"]
         
         h5name = self.savepath + self.filename + ".h5"
-        # print('\nSaving h5 file...')
+        print('\nSaving h5 file...')
         with h5py.File(h5name, 'w') as hfile:
 #             print('\tFrom datatable:')
             for col in self.datatable.columns:
@@ -126,4 +126,4 @@ class espion_file:
         print('Saved to: ' + h5name)
         
 if __name__ == "__main__":
-    a = espion_file("20160420", "03_ISeriesXe", "Squirrel")
+    a = espion_file("20160422", "04_BleachRecovery60s", "Squirrel")
