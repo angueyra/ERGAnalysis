@@ -64,12 +64,13 @@ class espion_file:
                 ch1start = int(ch1start)
                 ch2start = int(ch2start-1)
                 ntrials = int(ntrials)
+                data[stepname] = self.espion_step(ch1start=ch1start, ch2start=ch2start, ntrials=ntrials, csvtable=fullcsv)
             elif len(ch1start.unique())==1:
                 #found duplicates but all have the same column start
                 ch1start = int(ch1start.unique())
                 ch2start = int(ch2start.unique()-1)
                 ntrials = int(ntrials.sum())
-            data[stepname] = self.espion_step(ch1start=ch1start, ch2start=ch2start, ntrials=ntrials, csvtable=fullcsv)
+                data[stepname] = self.espion_step(ch1start=ch1start, ch2start=ch2start, ntrials=ntrials, csvtable=fullcsv)
         return data
     
     @staticmethod

@@ -241,11 +241,11 @@ classdef erg_screentrials<ergGUI
             tAx=hGUI.erg.step.(currStep).t;
             %temp means to replace at every update
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 .75 .75])
             set(lH,'DisplayName','tempL2')
             
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 .75 .75])
             set(lH,'DisplayName','tempR2')
             
             stepsn=size(get(hGUI.figData.DropDown,'string'),1);

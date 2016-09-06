@@ -1,4 +1,4 @@
-classdef ergGUI < genericGUI
+classdef ergGUI < erggenericGUI
    properties
        erg
    end
@@ -8,7 +8,7 @@ classdef ergGUI < genericGUI
           if nargin == 0
             fign=10;
           end
-          hGUI@genericGUI(fign);
+          hGUI@erggenericGUI(fign);
           hGUI.erg=erg;
           hGUI.params=params;
        end
@@ -45,6 +45,8 @@ classdef ergGUI < genericGUI
            plotstruct.Parent=hGUI.figData.panel;
            plotstruct=checkStructField(plotstruct,'Position',[.27 .55 .60 .43]);
            plotstruct=checkStructField(plotstruct,'FontSize',12);
+           plotstruct=checkStructField(plotstruct,'XScale','linear');
+           plotstruct=checkStructField(plotstruct,'YScale','linear');
            hGUI.figData.(plotstruct.tag)=axes(plotstruct);
        end
             

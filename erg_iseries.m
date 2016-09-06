@@ -60,6 +60,7 @@ classdef erg_iseries<ergGUI
             % trials in current step
             % left Eye
             plotL=struct('Position',[pleft ptop pwidth pheight],'tag','plotL');
+            plotL.XScale='log';
 %             plotL.YLim=[-5 5];
             hGUI.makePlot(plotL);
             hGUI.labelx(hGUI.figData.plotL,'Time (ms)');
@@ -67,6 +68,7 @@ classdef erg_iseries<ergGUI
             
             % right Eye
             plotR=struct('Position',[pleft ptop2 pwidth pheight],'tag','plotR');
+            plotR.XScale='log';
 %             plotR.YLim=[-5 5];
             hGUI.makePlot(plotR);
             hGUI.labelx(hGUI.figData.plotR,'Time (ms)');
@@ -105,15 +107,6 @@ classdef erg_iseries<ergGUI
             tAx=hGUI.erg.step.(currStep).t;
             
             
-            
-            %zero line
-            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL);
-            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','zeroL')
-            
-            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR);
-            set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','zeroR')
             %zero line
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
             set(lH,'LineStyle','--','Marker','none','LineWidth',2,'MarkerSize',5,'Color',[.75 .75 .75])
@@ -160,36 +153,65 @@ classdef erg_iseries<ergGUI
             
             currStep=hGUI.getMenuValue(hGUI.figData.DropDown);
             tAx=hGUI.erg.step.(currStep).t;
-            %temp means to replace at every update
-            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','tempL2')
             
-            lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',[.75 .75 .75])
-            set(lH,'DisplayName','tempR2')
+%           hGUI.figData.plotL2.XLim=[min(tAx) max(tAx)];
+%           hGUI.figData.plotR2.XLim=[min(tAx) max(tAx)];
+            hGUI.figData.plotL2.XLim=[0 0.15];
+            hGUI.figData.plotR2.XLim=[0 0.15];
             
+            
+            hGUI.erg.results=hGUI.erg.Iseries_abpeaks();
             stepsn=size(get(hGUI.figData.DropDown,'string'),1);
             scolors=pmkmp(stepsn,'CubicL');
             for i=1:stepsn
                 currStep=hGUI.erg.stepnames{i};
                 
+                % Average traces
                 tAx=hGUI.erg.step.(currStep).t;
                 L=hGUI.erg.step.(currStep).L;
                 R=hGUI.erg.step.(currStep).R;
-                
                 lH=line(tAx,L,'Parent',hGUI.figData.plotL2);
                 set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(i,:))
                 set(lH,'DisplayName',sprintf('%s_L',currStep))
-                
                 lH=line(tAx,R,'Parent',hGUI.figData.plotR2);
                 set(lH,'LineStyle','-','Marker','none','LineWidth',1,'MarkerSize',5,'Color',scolors(i,:))
                 set(lH,'DisplayName',sprintf('%s_R',currStep))
+                
+                % a-wave peaks
+                lH=line(hGUI.erg.results.La_t(i),hGUI.erg.results.La_peak(i),'Parent',hGUI.figData.plotL2);
+                set(lH,'LineStyle','none','Marker','o','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_La',currStep))
+                lH=line(hGUI.erg.results.Ra_t(i),hGUI.erg.results.Ra_peak(i),'Parent',hGUI.figData.plotR2);
+                set(lH,'LineStyle','none','Marker','o','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Ra',currStep))
+                
+                % b-wave peaks
+                lH=line(hGUI.erg.results.Lb_t(i),hGUI.erg.results.Lb_peak(i),'Parent',hGUI.figData.plotL2);
+                set(lH,'LineStyle','none','Marker','^','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Lb',currStep))
+                lH=line(hGUI.erg.results.Rb_t(i),hGUI.erg.results.Rb_peak(i),'Parent',hGUI.figData.plotR2);
+                set(lH,'LineStyle','none','Marker','^','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Rb',currStep))
+                
+                % Intensity Response curve point
+                % a-wave
+                lH=line(hGUI.erg.results.iF(i),-hGUI.erg.results.La_peak(i),'Parent',hGUI.figData.plotL);
+                set(lH,'LineStyle','none','Marker','o','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_La',currStep))
+                lH=line(hGUI.erg.results.iF(i),-hGUI.erg.results.Ra_peak(i),'Parent',hGUI.figData.plotR);
+                set(lH,'LineStyle','none','Marker','o','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Ra',currStep))
+                %b-wave
+                lH=line(hGUI.erg.results.iF(i),hGUI.erg.results.Lb_peak(i),'Parent',hGUI.figData.plotL);
+                set(lH,'LineStyle','none','Marker','^','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Lb',currStep))
+                lH=line(hGUI.erg.results.iF(i),hGUI.erg.results.Rb_peak(i),'Parent',hGUI.figData.plotR);
+                set(lH,'LineStyle','none','Marker','^','Color',scolors(i,:),'MarkerFaceColor',scolors(i,:))
+                set(lH,'DisplayName',sprintf('%s_Rb',currStep))
             end
-            hGUI.figData.plotL2.XLim=[min(tAx) max(tAx)];
-            hGUI.figData.plotR2.XLim=[min(tAx) max(tAx)];
             
-            hGUI.erg.Iseries_abpeaks();
+            
+
             hGUI.enableGui;
         end
         

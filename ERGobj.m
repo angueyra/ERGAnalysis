@@ -110,6 +110,11 @@ classdef ERGobj < handle
         
         
         function iS=Iseries_abpeaks(erg)
+            % find peaks of a and b wave for each Step
+            iS=struct;
+            
+            iFmap=[0.01,0.03,0.1,0.3,1,3,10,30,100,300,1000,3000,4000]';
+            
             iS.La_peak=NaN(size(erg.stepnames));
             iS.La_t=NaN(size(erg.stepnames));
             iS.Lb_peak=NaN(size(erg.stepnames));
@@ -127,10 +132,10 @@ classdef ERGobj < handle
                 L=erg.step.(currStep).L;
                 R=erg.step.(currStep).R;
                 
-                alims=(tAx>0.000 & tAx<0.05);
+                alims=~(tAx>0.000 & tAx<0.025);
                 aL=L; aL(alims)=0;
                 aR=R; aR(alims)=0;
-                blims=(tAx>0.025 & tAx<0.15);
+                blims=~(tAx>0.015 & tAx<0.1);
                 bL=L; bL(blims)=0;
                 bR=R; bR(blims)=0;
                 
@@ -139,11 +144,13 @@ classdef ERGobj < handle
                 iS.Ra_peak(i)=min(aR);
                 iS.Ra_t(i)=tAx(find(aR==min(aR),1,'first'));
                 
-                iS.Lb_peak(i)=min(bL);
-                iS.Lb_t(i)=tAx(find(bL==min(bL),1,'first'));
-                iS.Rb_peak(i)=min(bR);
-                iS.Rb_t(i)=tAx(find(bR==min(bR),1,'first'));
+                iS.Lb_peak(i)=max(bL);
+                iS.Lb_t(i)=tAx(find(bL==max(bL),1,'first'));
+                iS.Rb_peak(i)=max(bR);
+                iS.Rb_t(i)=tAx(find(bR==max(bR),1,'first'));
                 
+                iS.iF(i)=iFmap(str2double(currStep(regexp(currStep,'\d'))));
+
             end
         end
         
