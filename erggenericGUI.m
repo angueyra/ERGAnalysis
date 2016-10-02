@@ -18,7 +18,7 @@ classdef erggenericGUI < handle
             figure(fign);clf;
             hGUI.figH=gcf;
             set(hGUI.figH,'WindowStyle','normal');
-            set(hGUI.figH,'Position',[250 450 1111 800]);            
+            set(hGUI.figH,'Position',[250 450 1111 800]);
             delete(get(hGUI.figH, 'Children')); %delete every ui object whithin figure
             set(hGUI.figH,'UserData',hGUI);
             set(hGUI.figH,'KeyPressFcn',@hGUI.detectKey);

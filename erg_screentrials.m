@@ -133,7 +133,13 @@ classdef erg_screentrials<ergGUI
                 
                 lH=findobj('DisplayName','tempL2');
                 set(lH,'xdata',tAx,'ydata',mean(Ltrials(selL,:)))
+            elseif sum(selL==1)
+                lH=line(tAx,(Ltrials(selL,:)),'Parent',hGUI.figData.plotL);
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'DisplayName',sprintf('tempL'))
                 
+                lH=findobj('DisplayName','tempL2');
+                set(lH,'xdata',tAx,'ydata',(Ltrials(selL,:)))
             end
             if sum(selR)>1
                 lH=line(tAx,mean(Rtrials(selR,:)),'Parent',hGUI.figData.plotR);
@@ -142,6 +148,13 @@ classdef erg_screentrials<ergGUI
                 
                 lH=findobj('DisplayName','tempR2');
                 set(lH,'xdata',tAx,'ydata',mean(Rtrials(selR,:)))
+            elseif sum(selR==1)
+                lH=line(tAx,(Rtrials(selR,:)),'Parent',hGUI.figData.plotR);
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'DisplayName',sprintf('tempR'))
+                
+                lH=findobj('DisplayName','tempR2');
+                set(lH,'xdata',tAx,'ydata',(Rtrials(selR,:)))
             end
             % all trials
             colors=pmkmp((size(Ltrials,1)),'CubicL');
@@ -216,7 +229,7 @@ classdef erg_screentrials<ergGUI
             selL = TrialSel(:,1);
             hGUI.erg.step.(currStep).selL=selL;
             if sum(selL)==1
-                hGUI.erg.step.(currStep).L=Ltrials;
+                hGUI.erg.step.(currStep).L=Ltrials(selL,:);
             elseif sum(selL)>1
                 hGUI.erg.step.(currStep).L=mean(Ltrials(selL,:));
             end
@@ -224,7 +237,7 @@ classdef erg_screentrials<ergGUI
             selR = TrialSel(:,2);
             hGUI.erg.step.(currStep).selR=selR;
             if sum(selR)==1
-                hGUI.erg.step.(currStep).R=Rtrials;
+                hGUI.erg.step.(currStep).R=Rtrials(selR,:);
             elseif sum(selR)>1
                 hGUI.erg.step.(currStep).R=mean(Rtrials(selR,:));
             end

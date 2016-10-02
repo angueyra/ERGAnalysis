@@ -17,7 +17,7 @@ class espion_file:
     
     def pull_metadata(self):
         # pull and parse metadata information
-        csvparams = pandas.read_csv(self.fullpath, header=1, usecols=[0, 1], nrows=10)
+        csvparams = pandas.read_csv(self.fullpath, header=1, usecols=[0, 1], nrows=10, low_memory=False)
         csvparams = csvparams.dropna()
         metadata = dict()
         intfields = ["Steps", "Channels"]
@@ -36,22 +36,29 @@ class espion_file:
                 
     def pull_datatable(self):
         # pull datatable to parse data
-        fullcsv = pandas.read_csv(self.fullpath, header=0)
+        fullcsv = pandas.read_csv(self.fullpath, header=0, low_memory=False)
         if "Data Table" in fullcsv:
-            # print("Data Table is Right")
-            datatable = pandas.read_csv(self.fullpath, header=1, usecols=[3, 4, 5, 8])
+            #print("Data Table is Right")
+            datatable = pandas.read_csv(self.fullpath, header=1, usecols=[3, 4, 5, 8], low_memory=False)
             datatable = datatable.dropna()
             datatable = datatable.astype(int)
-        if fullcsv.ix[12, 0] == "Data Table":
-            # print("Data Table is Below")
-            datatable = pandas.read_csv(self.fullpath, header=1, usecols=[0, 1, 2, 5], skiprows=13)
+        elif fullcsv.ix[12, 0] == "Data Table":
+            #print("Data Table is Below")
+            datatable = pandas.read_csv(self.fullpath, header=1, usecols=[0, 1, 2, 5], skiprows=13, low_memory=False)
             datatable = datatable.dropna()
             datatable = datatable.astype(int)
+        elif fullcsv.ix[13, 0] == "Data Table":
+            #print("Data Table is Below")
+            datatable = pandas.read_csv(self.fullpath, header=1, usecols=[0, 1, 2, 5], skiprows=14, low_memory=False)
+            datatable = datatable.dropna()
+            datatable = datatable.astype(int)
+        else:
+            print("Did not find datatable")
         return datatable
     
     def pull_data(self):
         # parse data based on data table
-        fullcsv = pandas.read_csv(self.fullpath, header=0)
+        fullcsv = pandas.read_csv(self.fullpath, header=0, low_memory=False)
         data = dict()
         for step in range(self.metadata['Steps']):
             stepname = "Step" + str(step+1).zfill(2)
@@ -104,7 +111,7 @@ class espion_file:
         intfields = ["Steps", "Channels"]
         
         h5name = self.savepath + self.filename + ".h5"
-        print('\nSaving h5 file...')
+        print('Saving h5 file...')
         with h5py.File(h5name, 'w') as hfile:
 #             print('\tFrom datatable:')
             for col in self.datatable.columns:
@@ -124,7 +131,7 @@ class espion_file:
                 group.create_dataset('L', data=self.data[step].filter(regex = 'L'))
                 group.create_dataset('R', data=self.data[step].filter(regex = 'R'))
                 # print('\t\t' + step)
-        print('Saved to: ' + h5name)
+        print('Saved to: ' + h5name + '\n')
         
-if __name__ == "__main__":
-    a = espion_file("20160422", "04_BleachRecovery60s", "Squirrel")
+# if __name__ == "__main__":
+#     a = espion_file("20160928/20160928_wl05_2_eml1het", "20160928_wl05_2_01_iSscotdark", "Mouse")
