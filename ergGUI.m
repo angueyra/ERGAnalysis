@@ -31,7 +31,7 @@ classdef ergGUI < erggenericGUI
 %            hGUI.refocusTable(Plotted)
        end
        
-       % Object creation
+       
        function makePlot(hGUI,plotstruct,varargin)
            if nargin < 2
                plotstruct=struct;

@@ -163,9 +163,29 @@ classdef erg_iseries<ergGUI
             hGUI.erg.results=hGUI.erg.Iseries_abpeaks();
             stepsn=size(get(hGUI.figData.DropDown,'string'),1);
             scolors=pmkmp(stepsn,'CubicL');
+            
+            
+            
+            % Intensity Response Curves (probably should be fit here)
+            % a-wave
+            lH=line(hGUI.erg.results.iF,-hGUI.erg.results.La_peak,'Parent',hGUI.figData.plotL);
+            set(lH,'LineStyle','-','Marker','none','Color',[.5 .5 .5])
+            set(lH,'DisplayName',sprintf('all_La'))
+            lH=line(hGUI.erg.results.iF,-hGUI.erg.results.Ra_peak,'Parent',hGUI.figData.plotR);
+            set(lH,'LineStyle','-','Marker','none','Color',[.5 .5 .5])
+            set(lH,'DisplayName',sprintf('all_Ra'))
+            %b-wave
+            lH=line(hGUI.erg.results.iF,hGUI.erg.results.Lb_peak,'Parent',hGUI.figData.plotL);
+            set(lH,'LineStyle','-','Marker','none','Color',[.5 .5 .5])
+            set(lH,'DisplayName',sprintf('all_Lb'))
+            lH=line(hGUI.erg.results.iF,hGUI.erg.results.Rb_peak,'Parent',hGUI.figData.plotR);
+            set(lH,'LineStyle','-','Marker','none','Color',[.5 .5 .5])
+            set(lH,'DisplayName',sprintf('all_Rb'))
+            
+            
             for i=1:stepsn
                 currStep=hGUI.erg.stepnames{i};
-                
+
                 % Average traces
                 tAx=hGUI.erg.step.(currStep).t;
                 L=hGUI.erg.step.(currStep).L;
