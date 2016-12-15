@@ -3,7 +3,7 @@ classdef ERGobj < handle
 % erg=ERGload('subDirectory/','h5file')
     properties
         % path
-        dirRoot = '/Users/angueyraaristjm/Documents/LiData/invivoERG/';
+        dirRoot = '~/Documents/LiData/invivoERG/';
         dirData
         dirFile
         dirFull
@@ -33,6 +33,9 @@ classdef ERGobj < handle
                     temp_esp=load(sprintf('%s%s/%s.mat',erg.dirRoot,dirData,dirFile));
                     erg=temp_esp.erg;
                     fprintf('Loaded previously saved version!\n')
+                    erg.dirRoot = '~/Documents/LiData/invivoERG/';
+                    erg.dirFull=sprintf('%s%s/%s.h5',erg.dirRoot,erg.dirData,erg.dirFile);
+                    erg.dirSave=sprintf('%s%s/%s.mat',erg.dirRoot,erg.dirData,erg.dirFile);
                 else % espion csv file has been remapped to h5 file but not manipulated in matlab
                     if exist(sprintf('%s%s/%s.h5',erg.dirRoot,dirData,dirFile),'file')==2
                         erg.dirData=dirData;
