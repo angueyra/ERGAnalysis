@@ -162,9 +162,20 @@ classdef erg_iseries<ergGUI
             
             hGUI.erg.results=hGUI.erg.Iseries_abpeaks();
             stepsn=size(get(hGUI.figData.DropDown,'string'),1);
-            scolors=pmkmp(stepsn,'CubicL');
+%             scolors=pmkmp(stepsn,'CubicL');
             
+            % colors for paper, ignoring anything below .1 cd/m^2 (no signal)
+            scolors=repmat([.5 .5 .5],sum(hGUI.erg.results.iF<.1),1);
+            scolors=[scolors ; pmkmp(sum(hGUI.erg.results.iF>=.1),'CubicYF')];
+%             keyboard
+            % Flash marker
+            lH=line(tAx(tAx>=0&tAx<=0.002),700*ones(size(tAx(tAx>=0&tAx<=0.002))),'Parent',hGUI.figData.plotL2);
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',[0 0 0])
+            set(lH,'DisplayName',sprintf('flash'))
             
+            lH=line(tAx(tAx>=0&tAx<=0.002),700*ones(size(tAx(tAx>=0&tAx<=0.002))),'Parent',hGUI.figData.plotR2);
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',[0 0 0])
+            set(lH,'DisplayName',sprintf('flash'))
             
             % Intensity Response Curves (probably should be fit here)
             % a-wave

@@ -128,14 +128,14 @@ classdef erg_screentrials<ergGUI
             %temporary mean
             if sum(selL)>1
                 lH=line(tAx,mean(Ltrials(selL,:)),'Parent',hGUI.figData.plotL);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([1 0 0],.25))
                 set(lH,'DisplayName',sprintf('tempL'))
                 
                 lH=findobj('DisplayName','tempL2');
                 set(lH,'xdata',tAx,'ydata',mean(Ltrials(selL,:)))
             elseif sum(selL==1)
                 lH=line(tAx,(Ltrials(selL,:)),'Parent',hGUI.figData.plotL);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([1 0 0],.25))
                 set(lH,'DisplayName',sprintf('tempL'))
                 
                 lH=findobj('DisplayName','tempL2');
@@ -143,14 +143,14 @@ classdef erg_screentrials<ergGUI
             end
             if sum(selR)>1
                 lH=line(tAx,mean(Rtrials(selR,:)),'Parent',hGUI.figData.plotR);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([1 0 0],.25))
                 set(lH,'DisplayName',sprintf('tempR'))
                 
                 lH=findobj('DisplayName','tempR2');
                 set(lH,'xdata',tAx,'ydata',mean(Rtrials(selR,:)))
             elseif sum(selR==1)
                 lH=line(tAx,(Rtrials(selR,:)),'Parent',hGUI.figData.plotR);
-                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([0 0 0],.65))
+                set(lH,'LineStyle','-','Marker','none','LineWidth',3,'MarkerSize',5,'Color',whithen([1 0 0],.25))
                 set(lH,'DisplayName',sprintf('tempR'))
                 
                 lH=findobj('DisplayName','tempR2');
@@ -254,11 +254,11 @@ classdef erg_screentrials<ergGUI
             tAx=hGUI.erg.step.(currStep).t;
             %temp means to replace at every update
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotL2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 0 0])
             set(lH,'DisplayName','tempL2')
             
             lH=line(tAx,zeros(size(tAx)),'Parent',hGUI.figData.plotR2);
-            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 .75 .75])
+            set(lH,'LineStyle','-','Marker','none','LineWidth',3,'Color',[.75 0 0])
             set(lH,'DisplayName','tempR2')
             
             stepsn=size(get(hGUI.figData.DropDown,'string'),1);
