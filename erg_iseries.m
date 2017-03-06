@@ -11,6 +11,7 @@ classdef erg_iseries<ergGUI
             
             Rows=size(erg.stepnames,1);
             colors=pmkmp(Rows,'CubicL');
+%             colors=pmkmp(Rows,'CubicYF');
             tcolors=round(colors./1.2.*255);
             
             RowNames=cell(size(Rows));
@@ -166,7 +167,8 @@ classdef erg_iseries<ergGUI
             
             % colors for paper, ignoring anything below .1 cd/m^2 (no signal)
             scolors=repmat([.5 .5 .5],sum(hGUI.erg.results.iF<.1),1);
-            scolors=[scolors ; pmkmp(sum(hGUI.erg.results.iF>=.1),'CubicYF')];
+            scolors=[scolors ; pmkmp(sum(hGUI.erg.results.iF>=.1),'CubicL')];
+%             scolors=[scolors ; pmkmp(sum(hGUI.erg.results.iF>=.1),'CubicYF')];
 %             keyboard
             % Flash marker
             lH=line(tAx(tAx>=0&tAx<=0.002),700*ones(size(tAx(tAx>=0&tAx<=0.002))),'Parent',hGUI.figData.plotL2);
