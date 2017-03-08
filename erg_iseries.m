@@ -40,39 +40,31 @@ classdef erg_iseries<ergGUI
 %             table2input.CellEditCallback=@hGUI.updatePlots;
             hGUI.createTable(table2input);
             
-            
-            pleft=.180;
-            pwidth=.45;
-            pheight=.43;
-            ptop=.555;
-            ptop2=.08;
-            
-            bw=.11;
-            bh=0.07;
-            bl=0.005;
             % buttons
             hGUI.nextButton;
             hGUI.prevButton;
             hGUI.lockButton;
-            
-            accStruct=struct('callback',@hGUI.acceptButtonCall);
             hGUI.acceptButton;
             
-            % trials in current step
+            % plots
+            pleft=.180;
+            pwidth=.45;
+            pheight=.43;
+            ptop=.555;
+            ptop2=.06;
+            
+            % flash intensity vs response
             % left Eye
             plotL=struct('Position',[pleft ptop pwidth pheight],'tag','plotL');
             plotL.XScale='log';
-%             plotL.YLim=[-5 5];
             hGUI.makePlot(plotL);
-            hGUI.labelx(hGUI.figData.plotL,'Time (ms)');
+            hGUI.labelx(hGUI.figData.plotL,'I_f (cd/m^2)');
             hGUI.labely(hGUI.figData.plotL,'left TRP (\muV)');
-            
             % right Eye
             plotR=struct('Position',[pleft ptop2 pwidth pheight],'tag','plotR');
             plotR.XScale='log';
-%             plotR.YLim=[-5 5];
             hGUI.makePlot(plotR);
-            hGUI.labelx(hGUI.figData.plotR,'Time (ms)');
+            hGUI.labelx(hGUI.figData.plotR,'I_f (cd/m^2)');
             hGUI.labely(hGUI.figData.plotR,'right TRP (\muV)');
             
             
@@ -80,17 +72,14 @@ classdef erg_iseries<ergGUI
             pwidth2=.98-pleft2;
             pheight=.43;
             
-            % already saved averages
+            % already saved average responses
             % left Eye
             plotL2=struct('Position',[pleft2 ptop pwidth2 pheight],'tag','plotL2');
-%             plotL2.XLim=[-5 5];
             hGUI.makePlot(plotL2);
             hGUI.labelx(hGUI.figData.plotL2,'Time (ms)');
             hGUI.labely(hGUI.figData.plotL2,'left TRP (\muV)');
-            
             % right Eye
             plotR2=struct('Position',[pleft2 ptop2 pwidth2 pheight],'tag','plotR2');
-%             plotR2.XLim=[-5 5];
             hGUI.makePlot(plotR2);
             hGUI.labelx(hGUI.figData.plotR2,'Time (ms)');
             hGUI.labely(hGUI.figData.plotR2,'right TRP (\muV)');

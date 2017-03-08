@@ -17,6 +17,9 @@ classdef ERGobj < handle
         stepn
         
         results
+        
+        id
+        genotype
     end
     
     properties (SetAccess = private)
@@ -76,7 +79,8 @@ classdef ERGobj < handle
                     erg.info.(h5i.Attributes(i).Name)= h5readatt(erg.dirFull,'/',h5i.Attributes(i).Name);
                 end
             end
-            
+            erg.id = regexprep(erg.info.ID,'\W','_');
+            erg.genotype = erg.info.genotype;
             % data pre-allocation
             erg.stepnames=cell(size(h5i.Groups,1),1);
             erg.stepn=NaN(size(h5i.Groups,1),1);
@@ -108,7 +112,7 @@ classdef ERGobj < handle
             trials = struct;
             [Ltrials,Rtrials] = ERGfetchtrials(erg,stepname);
             trials.L = Ltrials(erg.step.(stepname).selL,:);
-            trials.R = Ltrials(erg.step.(stepname).selR,:);
+            trials.R = Rtrials(erg.step.(stepname).selR,:);
         end
         
         
@@ -139,10 +143,17 @@ classdef ERGobj < handle
                 L=erg.step.(currStep).L;
                 R=erg.step.(currStep).R;
                 
-                alims=~(tAx>0.000 & tAx<0.025);
+                
+                if strcmpi(erg.info.Species,'Mouse')
+                    alims=~(tAx>0.00 & tAx<0.05); 
+                    blims=~(tAx>0.045 & tAx<0.15);
+                else
+                    alims=~(tAx>0.000 & tAx<0.025); % This works well for Squirrel
+                    blims=~(tAx>0.015 & tAx<0.1);   % This works well for Squirrel
+                end
                 aL=L; aL(alims)=0;
                 aR=R; aR(alims)=0;
-                blims=~(tAx>0.015 & tAx<0.1);
+                
                 bL=L; bL(blims)=0;
                 bR=R; bR(blims)=0;
                 

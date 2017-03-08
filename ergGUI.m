@@ -176,6 +176,7 @@ classdef ergGUI < erggenericGUI
        
        function defaultCall(hGUI,~,~)
            hGUI.disableGui;
+           fprintf('Default call: this button is not doing anything\n')
            hGUI.enableGui;
        end
        function RowNames=waveTableNames(hGUI)

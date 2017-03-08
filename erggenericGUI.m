@@ -4,6 +4,8 @@ classdef erggenericGUI < handle
         figH
         params
         figData=struct;
+        colors  % color scheme
+        tcolors % converted to HTML format for uitables and uiobjects
     end
     
     properties (SetAccess = private)
