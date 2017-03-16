@@ -120,10 +120,20 @@ classdef ERGobj < handle
             % find peaks of a and b wave for each Step
             iS=struct;
             
+            switch erg.info.Species
+                case 'Mouse'
+                    if isempty(regexp(erg.info.Protocol,'Xe','once')) % used Cyan LED protocol
+                        iFmap=[0.0001,0.0003,0.001,0.003,0.01,0.03,0.1,0.3,1,3,10,30,100]';
+                    else % used Xenon Lamp protocol
+                        iFmap=[0.0001,0.0003,0.001,0.003,0.01,0.03,0.1,0.3,1,3,10,30,100,300,1000,3000]';
+                    end
+                case 'Squirrel'
+                    iFmap=[0.01,0.03,0.1,0.3,1,3,10,30,100,300,1000,3000,4000]';
+            end
+            
+            % before I extended the protocol. Manual fix for this ones
             if strcmp(erg.dirData,'20160928/20160928_wl05_2_eml1het/')||strcmp(erg.dirData,'20160928/20160928_wl05_3_wt/')
                 iFmap=[0.0001,0.0003,0.001,0.003,0.01,0.03,0.1,0.3,1,3,10,30]';
-            else
-                iFmap=[0.01,0.03,0.1,0.3,1,3,10,30,100,300,1000,3000,4000]';
             end
             
             iS.La_peak=NaN(size(erg.stepnames));
