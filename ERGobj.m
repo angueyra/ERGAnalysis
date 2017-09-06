@@ -190,7 +190,7 @@ classdef ERGobj < handle
             species=sprintf(' "%s"','Squirrel');
             % run python file through system (UNIX)
 %             pyout=system([pypath filepath filename species]);
-            error ('Py script not running properly. Reqs. variable input or manual adjustments')
+            error ('Py script not running properly. Reqs. variable input or manual adjustments'); pyout=[];
             % try import sys in python for argument values
         end
     end
