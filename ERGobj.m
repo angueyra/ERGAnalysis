@@ -103,8 +103,21 @@ classdef ERGobj < handle
         end
         
         function[Ltrials,Rtrials] = ERGfetchtrials(erg,stepname)
-            Ltrials=h5read(erg.dirFull,sprintf('/%s/L',stepname));
-            Rtrials=h5read(erg.dirFull,sprintf('/%s/R',stepname));
+            if sum(ismember(erg.stepnames,stepname)) % check if dataset exists in hdf5 file
+                Ltrials=h5read(erg.dirFull,sprintf('/%s/L',stepname));
+                Rtrials=h5read(erg.dirFull,sprintf('/%s/R',stepname));
+            else %provide empty vectors
+                Ltrials=[];
+                Rtrials=[];
+            end
+        end
+        
+        function tAxis = ERGfetchtime(erg,stepname)
+            if sum(ismember(erg.stepnames,stepname)) % check if dataset exists in hdf5 file
+                tAxis=h5read(erg.dirFull,sprintf('/%s/t',stepname));
+            else %provide empty vectors
+                tAxis=[];
+            end
         end
         
         function trials = ERGseltrials(erg,stepname)
@@ -118,6 +131,7 @@ classdef ERGobj < handle
         
         function iS=Iseries_abpeaks(erg)
             % find peaks of a and b wave for each Step
+            % b-wave is measured as [ab] segment
             iS=struct;
             
             switch erg.info.Species
@@ -145,6 +159,10 @@ classdef ERGobj < handle
             iS.Ra_t=NaN(size(erg.stepnames));
             iS.Rb_peak=NaN(size(erg.stepnames));
             iS.Rb_t=NaN(size(erg.stepnames));
+            
+            % for reporting b-wave amplitude
+            iS.Lab_peak=NaN(size(erg.stepnames));
+            iS.Rab_peak=NaN(size(erg.stepnames));
             
             for i=1:size(erg.stepnames,1)
                 
@@ -176,6 +194,10 @@ classdef ERGobj < handle
                 iS.Lb_t(i)=tAx(find(bL==max(bL),1,'first'));
                 iS.Rb_peak(i)=max(bR);
                 iS.Rb_t(i)=tAx(find(bR==max(bR),1,'first'));
+                
+                % making b-wave amplitude actually be [ab] segment (standard in ERG measurements)
+                iS.Lab_peak(i)=iS.Lb_peak(i)-iS.La_peak(i);
+                iS.Rab_peak(i)=iS.Rb_peak(i)-iS.Ra_peak(i);
                 
                 iS.iF(i)=iFmap(str2double(currStep(regexp(currStep,'\d'))));
 
