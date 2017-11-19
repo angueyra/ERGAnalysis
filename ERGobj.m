@@ -204,6 +204,68 @@ classdef ERGobj < handle
             end
         end
         
+        function rS=recovery_abpeaks(erg)
+            % find peaks of a and b wave for each trial in Step01
+            % b-wave is measured as [ab] segment
+            
+            currStep = 'Step01';
+            [Ltrials,Rtrials] = ERGfetchtrials(erg,currStep);
+            isi=1.5;
+            
+            rS=struct;
+            
+            rS.t=(1:1:(size(Ltrials,1)))'.*isi;
+            
+            rS.La_peak=NaN(size(Ltrials,1),1);
+            rS.Lb_peak=NaN(size(Ltrials,1),1);
+            rS.La_ttp=NaN(size(Ltrials,1),1);
+            rS.Lb_ttp=NaN(size(Ltrials,1),1);
+            
+            
+            
+            rS.Ra_peak=NaN(size(Rtrials,1),1);
+            rS.Rb_peak=NaN(size(Rtrials,1),1);
+            rS.Ra_ttp=NaN(size(Rtrials,1),1);
+            rS.Rb_ttp=NaN(size(Rtrials,1),1);
+            
+            % for reporting b-wave amplitude
+            rS.Lab_peak=NaN(size(Rtrials,1),1);
+            rS.Rab_peak=NaN(size(Rtrials,1),1);
+            
+            tAx=erg.step.(currStep).t;
+            if strcmpi(erg.info.Species,'Mouse')
+                alims=~(tAx>0.00 & tAx<0.05);
+                blims=~(tAx>0.045 & tAx<0.15);
+            else
+                alims=~(tAx>0.000 & tAx<0.025); % This works well for Squirrel
+                blims=~(tAx>0.015 & tAx<0.1);   % This works well for Squirrel
+            end
+            
+            for i=1:size(Ltrials,1)
+                
+                aL=Ltrials(i,:); aL(alims)=0;
+                aR=Rtrials(i,:); aR(alims)=0;
+                
+                bL=Ltrials(i,:); bL(blims)=0;
+                bR=Rtrials(i,:); bR(blims)=0;
+                
+                rS.La_peak(i)=min(aL);
+                rS.La_ttp(i)=tAx(find(aL==min(aL),1,'first'));
+                rS.Ra_peak(i)=min(aR);
+                rS.Ra_ttp(i)=tAx(find(aR==min(aR),1,'first'));
+                
+                rS.Lb_peak(i)=max(bL);
+                rS.Lb_ttp(i)=tAx(find(bL==max(bL),1,'first'));
+                rS.Rb_peak(i)=max(bR);
+                rS.Rb_ttp(i)=tAx(find(bR==max(bR),1,'first'));
+                
+                % making b-wave amplitude actually be [ab] segment (standard in ERG measurements)
+                rS.Lab_peak(i)=rS.Lb_peak(i)-rS.La_peak(i);
+                rS.Rab_peak(i)=rS.Rb_peak(i)-rS.Ra_peak(i);
+                
+            end
+        end
+        
         function pyout=runpycsvparser(erg)
             pypath='/Users/angueyraaristjm/matlab/matlab-analysis/trunk/users/juan/AnalysisMain/ERGAnalysis/test.py';
             pypath=['~/anaconda/python.app/Contents/MacOS/python ' pypath];
