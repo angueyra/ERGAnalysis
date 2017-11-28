@@ -3,6 +3,7 @@ classdef erg_recovery < handle
     % has been completed
     properties
         % path
+        normFlag = 0;
         id
         isi = 1.5;
         d1results = struct(...
@@ -41,8 +42,15 @@ classdef erg_recovery < handle
         d3bleachedeye
         d3dirData
         d3dirFile
-        d1norm = struct('Lab',[],'Rab',[]);
-        d3norm = struct('Lab',[],'Rab',[]);
+        d1norm = struct('ab',[],'uab',[]);
+        d3norm = struct('ab',[],'uab',[]);
+        d1normf = struct('ab',[],'uab',[]);
+        d3normf = struct('ab',[],'uab',[]);
+        figData
+        d1fit
+        d1fitcoeffs
+        d3fit
+        d3fitcoeffs
     end
     
     properties (SetAccess = private)
@@ -56,7 +64,7 @@ classdef erg_recovery < handle
                 temperg = ERGobj(ergR.d1dirData,ergR.d1dirFile{i});
                 tempresults = temperg.results;
                 if i<ergR.d1tnaught(1)
-                    tempresults.t = tempresults.t - (length(tempresults.t)+ergR.d1tnaught(2))*ergR.isi;
+                    tempresults.t = tempresults.t - (length(tempresults.t))-(ergR.d1tnaught(2)*ergR.isi)*2;
                 elseif i==ergR.d1tnaught(1)
                     tempresults.t = tempresults.t - (ergR.d1tnaught(2))*ergR.isi;
                 else
@@ -86,42 +94,126 @@ classdef erg_recovery < handle
         end
         
         function ergR=recPlot(ergR)
-            ergR.d1norm.Lab = mean(ergR.d1results.Lab_peak(ergR.d1results.t<0));
-            ergR.d1norm.Rab = mean(ergR.d1results.Rab_peak(ergR.d1results.t<0));
-            ergR.d3norm.Lab = mean(ergR.d3results.Lab_peak(ergR.d3results.t<0));
-            ergR.d3norm.Rab = mean(ergR.d3results.Rab_peak(ergR.d3results.t<0));
+            % bleached eye data
+            if ergR.d1bleachedeye == 'R'
+                if ergR.normFlag
+                    ergR.d1normf.ab = mean(ergR.d1results.Rab_peak(ergR.d1results.t<0));
+                else
+                    ergR.d1normf.ab = 1;
+                end
+                ergR.d1norm.ab = ergR.d1results.Rab_peak./ergR.d1normf.ab;
+            elseif ergR.d1bleachedeye == 'L'
+                if ergR.normFlag
+                    ergR.d1normf.ab = mean(ergR.d1results.Lab_peak(ergR.d1results.t<0));
+                else
+                    ergR.d1normf.ab = 1;
+                end
+                ergR.d1norm.ab = ergR.d1results.Lab_peak./ergR.d1normf.ab;
+            else
+                ergR.d1normf.ab = 1;
+                ergR.d1norm.ab = zeros(size(ergR.d1results.t));
+            end
             
-%             ergR.d1norm.Lab = 1;
-%             ergR.d1norm.Rab = 1;
-%             ergR.d3norm.Lab = 1;
-%             ergR.d3norm.Rab = 1;
+            
+            if ergR.d3bleachedeye == 'R'
+                if ergR.normFlag
+                    ergR.d3normf.ab = mean(ergR.d3results.Rab_peak(ergR.d3results.t<0));
+                else
+                    ergR.d3normf.ab = 1;
+                end
+                ergR.d3norm.ab = ergR.d3results.Rab_peak./ergR.d3normf.ab;
+            elseif ergR.d3bleachedeye == 'L'
+                if ergR.normFlag
+                    ergR.d3normf.ab = mean(ergR.d3results.Lab_peak(ergR.d3results.t<0));
+                else
+                    ergR.d3normf.ab = 1;
+                end
+                ergR.d3norm.ab = ergR.d3results.Lab_peak./ergR.d3normf.ab;
+            else
+                ergR.d3normf.ab = 1;
+                ergR.d3norm.ab = zeros(size(ergR.d1results.t));
+            end
             
             f1=getfigH(1);
-            set(f1,'YScale','log')
+            set(f1,'YScale','linear')
             setLabels(f1,'time (s)','b-wave amplitude (norm)')
             lH=lineH([ergR.d1results.t(1)-100 ergR.d1results.t(end)+100],[1 1],f1);
             lH.linedash;lH.setName('unity');
             
-            if ergR.d1bleachedeye == 'R'
-                lH=lineH(ergR.d1results.t,ergR.d1results.Rab_peak./ergR.d1norm.Rab,f1);
-            elseif ergR.d1bleachedeye == 'L'
-                lH=lineH(ergR.d1results.t,ergR.d1results.Lab_peak./ergR.d1norm.Lab,f1);
+            ergR.d1fit=lineH(ergR.d1results.t,zeros(size(ergR.d1results.t)),f1);
+            ergR.d1fit.line;ergR.d1fit.color([.5 .5 .5]);ergR.d1fit.h.LineWidth=2;
+            ergR.d1fit.setName('d1fit');
+            
+            ergR.d3fit=lineH(ergR.d3results.t,zeros(size(ergR.d3results.t)),f1);
+            ergR.d3fit.line;ergR.d3fit.color([.9 .5 .5]);ergR.d3fit.h.LineWidth=2;
+            ergR.d3fit.setName('d3fit');
+            
+            lH1=lineH(ergR.d1results.t,ergR.d1norm.ab,f1);
+            lH1.markers;lH1.color([0 0 0]);
+            lH1.setName('d1');
+            
+            lH3=lineH(ergR.d3results.t,ergR.d3norm.ab,f1);
+            lH3.markers;lH3.color([1 0 0]);
+            lH3.setName('d3');
+            
+            ergR.figData.fig=f1;
+            ergR.recExpFit;
+            
+%             legend(...
+%                 [lH1.h,lH3.h,ergR.d1fit.h,ergR.d3fit.h],...
+%                 'day1','day3',sprintf('fit day1 (tau = %4.2fs)',ergR.d1fitcoeffs(3)),sprintf('fit day3 (tau = %4.2fs)',ergR.d3fitcoeffs(3)),...
+%                 'Location','SouthEast'); 
+%             legend('boxoff');
+        end
+        
+        function ergR=recExpFit(ergR)
+            %%
+            lsqfun=@(coeffs,tme)coeffs(1)+(coeffs(2).*(1-exp(-tme./coeffs(3))));
+            LSQd1.objective=lsqfun;
+            LSQd1.x0=[...
+                mean(ergR.d1norm.ab(ergR.d1results.t>=0 & ergR.d1results.t<5)) ...
+                mean(ergR.d1norm.ab(end-10:end)) ...
+                50];
+            LSQd1.xdata=ergR.d1results.t(ergR.d1results.t>=0 & ergR.d1results.t<600);
+            LSQd1.ydata=ergR.d1norm.ab(ergR.d1results.t>=0 & ergR.d1results.t<600);
+            LSQd1.lb=[0 0 0];
+            if ergR.normFlag
+                LSQd1.ub=[1 1.5 1e6];
             else
-                lH=lineH(ergR.d1results.t,zeros(size(ergR.d1results.t,f1),f1));
+                LSQd1.ub=[400 1000 1e6];
             end
-            lH.markers;lH.color([0 0 0]);
-            lH.setName('d1');
-            if ergR.d3bleachedeye == 'R'
-                lH=lineH(ergR.d3results.t,ergR.d3results.Rab_peak./ergR.d3norm.Rab,f1);
-            elseif ergR.d3bleachedeye == 'L'
-                lH=lineH(ergR.d3results.t,ergR.d3results.Lab_peak./ergR.d3norm.Lab,f1);
+            LSQd1.solver='lsqcurvefit';
+            LSQd1.options=optimset('TolX',1e-20,'TolFun',1e-20,'MaxFunEvals',500);
+            ergR.d1fitcoeffs=lsqcurvefit(LSQd1);
+            d1fitY=lsqfun(ergR.d1fitcoeffs,ergR.d1results.t);
+            d1fitY(ergR.d1results.t<0)=NaN;
+            
+            ergR.d1fit.h.YData=d1fitY;
+            %%
+            lsqfun=@(coeffs,tme)coeffs(1)+(coeffs(2).*(1-exp(-tme./coeffs(3))));
+            LSQd3.objective=lsqfun;
+            LSQd3.x0=[...
+                mean(ergR.d3norm.ab(ergR.d3results.t>=0 & ergR.d3results.t<5)) ...
+                mean(ergR.d3norm.ab(end-10:end)) ...
+                50];
+            LSQd3.xdata=ergR.d3results.t(ergR.d3results.t>=0 & ergR.d3results.t<600);
+            LSQd3.ydata=ergR.d3norm.ab(ergR.d3results.t>=0 & ergR.d3results.t<600);
+            LSQd3.lb=[0 0 0];
+            if ergR.normFlag
+                LSQd3.ub=[1 1.5 1e6];
             else
-                lH=lineH(ergR.d3results.t,zeros(size(ergR.d3results.t,f1),f1));
+                LSQd3.ub=[400 1000 1e6];
             end
-            lH.markers;lH.color([1 0 0]);
-            lH.setName('d3');
-            legend('','day1','day3'); 
-            legend('boxoff');
+            
+            
+            LSQd3.solver='lsqcurvefit';
+            LSQd3.options=optimset('TolX',1e-20,'TolFun',1e-20,'MaxFunEvals',500);
+            ergR.d3fitcoeffs=lsqcurvefit(LSQd3);
+            
+            d3fitY=lsqfun(ergR.d3fitcoeffs,ergR.d3results.t);
+            d3fitY(ergR.d3results.t<0)=NaN;
+            
+            ergR.d3fit.h.YData=d3fitY;
         end
         
         function ergR=recParse(ergR,whichone)
@@ -221,7 +313,7 @@ classdef erg_recovery < handle
                 
                 %MB001 Low
                 case 'Sq993'
-                    ergR.d1tnaught = [2,4];
+                    ergR.d1tnaught = [2,5];
                     ergR.d1bleachedeye='R';
                     ergR.d1dirData = '20170829/20170829_Sq993_MB001Low';
                     ergR.d1dirFile = {...
@@ -259,7 +351,7 @@ classdef erg_recovery < handle
                     ergR.d3tdelays = [0,0,40,90,145,210,270,328,385,447,500,560,860];
                 %Sq998
                 case 'Sq998'
-                    ergR.d1tnaught = [2,7];
+                    ergR.d1tnaught = [2,10];
                     ergR.d1bleachedeye='R';
                     ergR.d1dirData = '20170830/20170830_Sq998_MB001Low';
                     ergR.d1dirFile = {...
@@ -276,7 +368,7 @@ classdef erg_recovery < handle
                         };
                     ergR.d1tdelays = [0,0,40,80,150,230,295,370,450,520];
                     
-                    ergR.d3tnaught = [2,7];
+                    ergR.d3tnaught = [2,9];
                     ergR.d3bleachedeye='R';
                     ergR.d3dirData = '20170901/20170901_Squirrel998_MB001Low';
                     ergR.d3dirFile = {...
@@ -368,26 +460,44 @@ classdef erg_recovery < handle
                         '13_FlashesPost16min36s';...
                         };
                     ergR.d3tdelays = [0,0,71,157,243,328,413,500,822,910,996];
-                    
-                 case 'Template3'
-                    ergR.d1tnaught = [2,7];
+                 %Sq1090   
+                 case 'Sq1090'
+                    ergR.d1tnaught = [2,12];
                     ergR.d1bleachedeye='R';
-                    ergR.d1dirData = 'dateanddir';
+                    ergR.d1dirData = '20171023/20171023_Sq1090_Fenretinide';
                     ergR.d1dirFile = {...
-                        'namehere'; ...
+                        '02_FlashesPre';...
+                        '03_FlashesPost0s';...
+                        '04_FlashesPost1min13s';...
+                        '05_FlashesPost2min41s';...
+                        '06_FlashesPost4min10s';...
+                        '07_FlashesPost5min37s';...
+                        '08_FlashesPost7min03s';...
+                        '09_FlashesPost8min34s';...
+                        '11_FlashesPost13min57s';...
+                        '12_FlashesPost16min04s';...
                         };
-                    ergR.d1tdelays = [0,0,0,0,0,0,0,0];
+                    ergR.d1tdelays = [0,0,73,161,250,337,423,514,837,964];
                     
-                    ergR.d3tnaught = [2,8];
-                    ergR.d3bleachedeye='R';
-                    ergR.d3dirData = 'dateanddir';
+                    ergR.d3tnaught = [2,10];
+                    ergR.d3bleachedeye='L';
+                    ergR.d3dirData = '20171025/20171025_Sq1090_Fenretinide';
                     ergR.d3dirFile = {...
-                        'namehere';...
+                        '02_FlashesPre';...
+                        '03_FlashPost0s';...
+                        '04_FlashPost1min16s';...
+                        '05_FlashPost2min43s';...
+                        '06_FlashPost4min13s';...
+                        '07_FlashPost5min36s';...
+                        '08_FlashPost7min01s';...
+                        '09_FlashPost8min32s';...
+                        '11_FlashPost13min36s';...
+                        '12_FlashPost15min05s';...
                         };
-                    ergR.d3tdelays = [0,0,0,0,0,0,0,0];
+                    ergR.d3tdelays = [0,0,76,163,253,336,421,512,816,905];
                 %Vehicle
                 case 'Sq999'
-                    ergR.d1tnaught = [2,7];
+                    ergR.d1tnaught = [2,8];
                     ergR.d1bleachedeye='R';
                     ergR.d1dirData = '20170905/20170905_Sq999_Vehicle';
                     ergR.d1dirFile = {...
