@@ -3,7 +3,7 @@ classdef erg_recovery < handle
     % has been completed
     properties
         % path
-        normFlag = 0;
+        normFlag = 1;
         id
         isi = 1.5;
         d1results = struct(...
@@ -49,8 +49,12 @@ classdef erg_recovery < handle
         figData
         d1fit
         d1fitcoeffs
+        d1fitresnorm
         d3fit
         d3fitcoeffs
+        d3fitresnorm
+        % colors = [[.5 .5 .5];[0 0 0];[.9 .5 .5];[1 0 0];];
+        colors = [[130 170 184];[128 128 128];[217 64 62];[233 139 58];]./255;
     end
     
     properties (SetAccess = private)
@@ -141,19 +145,19 @@ classdef erg_recovery < handle
             lH.linedash;lH.setName('unity');
             
             ergR.d1fit=lineH(ergR.d1results.t,zeros(size(ergR.d1results.t)),f1);
-            ergR.d1fit.line;ergR.d1fit.color([.5 .5 .5]);ergR.d1fit.h.LineWidth=2;
+            ergR.d1fit.line;ergR.d1fit.color(ergR.colors(1,:)./1.4);ergR.d1fit.h.LineWidth=2;
             ergR.d1fit.setName('d1fit');
             
             ergR.d3fit=lineH(ergR.d3results.t,zeros(size(ergR.d3results.t)),f1);
-            ergR.d3fit.line;ergR.d3fit.color([.9 .5 .5]);ergR.d3fit.h.LineWidth=2;
+            ergR.d3fit.line;ergR.d3fit.color(ergR.colors(3,:)./1.4);ergR.d3fit.h.LineWidth=2;
             ergR.d3fit.setName('d3fit');
             
             lH1=lineH(ergR.d1results.t,ergR.d1norm.ab,f1);
-            lH1.markers;lH1.color([0 0 0]);
+            lH1.markers;lH1.color(ergR.colors(1,:));
             lH1.setName('d1');
             
             lH3=lineH(ergR.d3results.t,ergR.d3norm.ab,f1);
-            lH3.markers;lH3.color([1 0 0]);
+            lH3.markers;lH3.color(ergR.colors(3,:));
             lH3.setName('d3');
             
             ergR.figData.fig=f1;
@@ -184,7 +188,7 @@ classdef erg_recovery < handle
             end
             LSQd1.solver='lsqcurvefit';
             LSQd1.options=optimset('TolX',1e-20,'TolFun',1e-20,'MaxFunEvals',500);
-            ergR.d1fitcoeffs=lsqcurvefit(LSQd1);
+            [ergR.d1fitcoeffs,ergR.d1fitresnorm]=lsqcurvefit(LSQd1);
             d1fitY=lsqfun(ergR.d1fitcoeffs,ergR.d1results.t);
             d1fitY(ergR.d1results.t<0)=NaN;
             
@@ -208,7 +212,7 @@ classdef erg_recovery < handle
             
             LSQd3.solver='lsqcurvefit';
             LSQd3.options=optimset('TolX',1e-20,'TolFun',1e-20,'MaxFunEvals',500);
-            ergR.d3fitcoeffs=lsqcurvefit(LSQd3);
+            [ergR.d3fitcoeffs,ergR.d3fitresnorm]=lsqcurvefit(LSQd3);
             
             d3fitY=lsqfun(ergR.d3fitcoeffs,ergR.d3results.t);
             d3fitY(ergR.d3results.t<0)=NaN;
